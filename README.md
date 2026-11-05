@@ -25,7 +25,7 @@ Try the design before setting anything up: open `/card/demo` once it's deployed,
 | `img/` | Logo, favicon and home-screen icon used by the site |
 | `brand/` | Logo files for use elsewhere (SVG and PNG, light and dark) |
 | `supabase/schema.sql` | Database table, security rules and photo bucket |
-| `vendor/` | Supabase JS 2.45.4 and qrcode-generator 1.4.4 (MIT), so the site doesn't rely on a CDN |
+| `vendor/` | Supabase JS 2.118.0 and qrcode-generator 1.4.4 (MIT), so the site doesn't rely on a CDN |
 | `netlify.toml`, `vercel.json` | Make `/card/<name>` links work |
 
 ## Setup (about 15 minutes)
