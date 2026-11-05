@@ -35,20 +35,25 @@
   </div>
 
   <div class="panel" id="auth">
-    <h2>Create your card</h2>
-    <p class="sub">Enter your email and we'll send you a sign-in link. No password needed.</p>
+    <h2 id="auth-title">Create your card</h2>
+    <p class="sub" id="auth-sub">Make a free account to build your card. It takes a minute.</p>
     <div id="setup" class="msg err" style="margin:0 0 14px" hidden>This site isn't connected to its database yet. Add your Supabase details to <code>js/config.js</code> (see the README).</div>
+    <div id="google-wrap" hidden>
+      <button class="btn w100" type="button" id="google-btn"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.45a5.5 5.5 0 0 1-2.4 3.62v3h3.87c2.27-2.09 3.58-5.17 3.58-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.92l-3.87-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95h-4v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.27 14.28a7.2 7.2 0 0 1 0-4.56v-3.1h-4a12 12 0 0 0 0 10.76z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.34.6 4.59 1.8l3.43-3.43A11.5 11.5 0 0 0 12 0 12 12 0 0 0 1.27 6.62l4 3.1C6.22 6.88 8.87 4.77 12 4.77z"/></svg>Continue with Google</button>
+      <div class="divider">or use email</div>
+    </div>
     <form id="email-form" novalidate>
       <div class="field">
         <label for="email">Email</label>
         <input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
       </div>
-      <button class="btn primary w100" type="submit" id="email-btn">Send me a sign-in link</button>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters">
+      </div>
+      <button class="btn primary w100" type="submit" id="email-btn">Create account</button>
     </form>
-    <div id="google-wrap" hidden>
-      <div class="divider">or</div>
-      <button class="btn w100" type="button" id="google-btn">Continue with Google</button>
-    </div>
+    <p class="hint center" style="margin-top:14px;font-size:.9375rem"><span id="switch-text">Already have an account?</span> <button type="button" id="switch" class="linkbtn">Sign in</button></p>
     <div id="auth-msg" class="msg" role="status" hidden></div>
   </div>
 </section>
@@ -59,31 +64,57 @@
 <script src="/js/common.js"></script>
 <script>
 (async function () {
-  var E = window.ECard, sb = E.sb;
-  var msg = document.getElementById("auth-msg");
+  var E = window.ECard, sb = E.sb, $ = function (id) { return document.getElementById(id); };
+  var msg = $("auth-msg"), mode = "signup";
   function say(t, err) { msg.hidden = false; msg.textContent = t; msg.classList.toggle("err", !!err); }
   if (E.cfg.appName) document.title = E.cfg.appName + " · Free digital business card";
-  if (!sb) { document.getElementById("setup").hidden = false; document.getElementById("email-btn").disabled = true; return; }
+  if (!sb) { $("setup").hidden = false; $("email-btn").disabled = true; return; }
 
   var s = await sb.auth.getSession();
   if (s.data.session) { location.replace("/edit.html"); return; }
   sb.auth.onAuthStateChange(function (ev, session) { if (session) location.replace("/edit.html"); });
 
-  document.getElementById("email-form").addEventListener("submit", async function (e) {
+  function setMode(m) {
+    mode = m; msg.hidden = true;
+    var up = m === "signup";
+    $("auth-title").textContent = up ? "Create your card" : "Welcome back";
+    $("auth-sub").textContent = up ? "Make a free account to build your card. It takes a minute." : "Sign in to edit your card.";
+    $("email-btn").textContent = up ? "Create account" : "Sign in";
+    $("password").setAttribute("autocomplete", up ? "new-password" : "current-password");
+    $("switch-text").textContent = up ? "Already have an account?" : "New here?";
+    $("switch").textContent = up ? "Sign in" : "Create an account";
+  }
+  $("switch").addEventListener("click", function () { setMode(mode === "signup" ? "signin" : "signup"); });
+  if (location.hash === "#signin") setMode("signin");
+
+  var friendly = {
+    "Invalid login credentials": "That email and password don't match. Check them, or create an account if you're new.",
+    "User already registered": "There's already an account with this email. Tap Sign in below.",
+    "Email not confirmed": "This account still needs its email confirmed. Check your inbox for the confirmation link.",
+    "email rate limit exceeded": "Too many emails were sent in the last hour. Please try again later."
+  };
+
+  $("email-form").addEventListener("submit", async function (e) {
     e.preventDefault();
-    var email = document.getElementById("email").value.trim(), btn = document.getElementById("email-btn");
+    var email = $("email").value.trim(), pw = $("password").value, btn = $("email-btn"), label = btn.textContent;
     if (!/^\S+@\S+\.\S+$/.test(email)) { say("Please enter a valid email address.", true); return; }
-    btn.disabled = true; btn.textContent = "Sending…";
-    var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + "/edit.html" } });
-    btn.disabled = false; btn.textContent = "Send me a sign-in link";
-    if (r.error) say(r.error.message, true);
-    else say("Check your inbox for a link from us. Open it on this device to start building your card.");
+    if (pw.length < 8) { say("Your password needs at least 8 characters.", true); return; }
+    btn.disabled = true; btn.textContent = mode === "signup" ? "Creating account…" : "Signing in…";
+    var r = mode === "signup"
+      ? await sb.auth.signUp({ email: email, password: pw, options: { emailRedirectTo: location.origin + "/edit.html" } })
+      : await sb.auth.signInWithPassword({ email: email, password: pw });
+    btn.disabled = false; btn.textContent = label;
+    if (r.error) { say(friendly[r.error.message] || r.error.message, true); return; }
+    if (r.data && r.data.session) { location.replace("/edit.html"); return; }
+    // Sign-up worked but Supabase still requires email confirmation.
+    say("Account created. Check your inbox to confirm your email, then come back and sign in.");
   });
 
   if (E.cfg.googleSignIn) {
-    document.getElementById("google-wrap").hidden = false;
-    document.getElementById("google-btn").addEventListener("click", function () {
-      sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + "/edit.html" } });
+    $("google-wrap").hidden = false;
+    $("google-btn").addEventListener("click", async function () {
+      var r = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + "/edit.html" } });
+      if (r.error) say(r.error.message, true);
     });
   }
 })();

@@ -16,7 +16,7 @@ Try the design before setting anything up: open `/card/demo` once it's deployed,
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | Landing page and sign-in (email link, optional Google) |
+| `index.html` | Landing page and sign-in (Google, or email and password) |
 | `edit.html`, `js/edit.js` | Card editor with live preview |
 | `card.html` | Public card page, served for every `/card/<name>` link |
 | `js/common.js` | Card layout, contact file, QR code and wallpaper image |
@@ -49,14 +49,26 @@ You can rename the free address (for example `ecard-my.netlify.app`) or add your
 In Supabase, open **Authentication → URL Configuration**:
 
 - **Site URL:** your site address, e.g. `https://ecard-my.netlify.app`
-- **Redirect URLs:** add `https://ecard-my.netlify.app/edit.html`
+- **Redirect URLs:** add `https://ecard-my.netlify.app/**`
 
 Without this, the sign-in email links won't bring people back to your site.
 
-### 4. Before inviting lots of people
+### 4. Sign-in setup (no emails needed)
 
-- **Email limits:** Supabase's built-in email sender only sends a few sign-in emails per hour and is meant for testing. For real users, connect a free email service under **Authentication → Emails → SMTP Settings** (for example [Resend](https://resend.com), free for 3,000 emails a month).
-- **Google sign-in (optional):** turn on Google under **Authentication → Providers**, then set `googleSignIn: true` in `js/config.js`.
+People sign in with **Google** or with an **email and password**, so the app doesn't depend on Supabase's built-in email sender, which only sends a couple of emails an hour.
+
+**Turn off email confirmation:** in Supabase, open **Authentication → Sign In / Providers → Email** and switch off **Confirm email**, then save. New accounts can then sign in straight away.
+
+**Turn on Google:**
+1. Go to [console.cloud.google.com](https://console.cloud.google.com), create a project (for example "IDFINITY"), and open **APIs & Services → OAuth consent screen**. Choose **External**, fill in the app name and your email, and publish it.
+2. Open **APIs & Services → Credentials → Create credentials → OAuth client ID**, choose **Web application**, and under **Authorized redirect URIs** add `https://<your-project>.supabase.co/auth/v1/callback`.
+3. Copy the **Client ID** and **Client secret** into Supabase under **Authentication → Sign In / Providers → Google**, turn it on, and save.
+
+`googleSignIn` in `js/config.js` shows or hides the Google button.
+
+### 5. Other things to know
+
+- **Password resets** need email. If many people use passwords, connect a custom email sender later (for example [Resend](https://resend.com) with your own domain) under **Authentication → Emails → SMTP Settings**.
 - **Inactivity:** free Supabase projects pause after a week with no activity. Opening the dashboard wakes them up. Regular visitors keep the project active.
 - **Free tier limits:** 500 MB database and 1 GB file storage. Photos are resized to 512 × 512 (about 50 KB), so that's room for thousands of cards.
 

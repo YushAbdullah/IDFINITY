@@ -4,6 +4,6 @@ window.ECARD_CONFIG = {
   appName: "IDFINITY",
   supabaseUrl: "https://vdfdsxtthxtkcovgtgww.supabase.co",
   supabaseAnonKey: "sb_publishable_RU1-Sc1x3knmyuEuPiWZhQ_AIrtQdkg",
-  // Turn on after enabling Google under Authentication → Providers in Supabase.
-  googleSignIn: false
+  // Needs Google turned on under Authentication → Sign In / Providers in Supabase (see README).
+  googleSignIn: true
 };
