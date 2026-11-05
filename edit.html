@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edit your card · IDFINITY</title>
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F6FEF6">
+<link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="/" aria-label="IDFINITY home"><img src="/img/logo.svg" alt="IDFINITY" width="136" height="36"></a>
+  <div class="links-r">
+    <a class="btn ghost" id="view-link" href="#" target="_blank" rel="noopener" hidden>View my card</a>
+    <button class="btn ghost" type="button" id="signout">Sign out</button>
+  </div>
+</header>
+
+<div class="empty" id="loading"><p>Loading your card…</p></div>
+
+<div class="editor" id="editor" hidden>
+  <form id="form" novalidate>
+    <fieldset>
+      <legend>Your link</legend>
+      <div class="field">
+        <label for="slug">Card address</label>
+        <div class="slug"><span id="slug-prefix">/card/</span><input id="slug" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="32" placeholder="your-name" required></div>
+        <div class="hint" id="slug-hint">Lowercase letters, numbers and dashes. This is the link you share.</div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>About you</legend>
+      <div class="field photo">
+        <div id="photo-preview" class="av av-ph" aria-hidden="true">?</div>
+        <div>
+          <label class="btn" for="photo" style="margin:0">Upload photo</label>
+          <input id="photo" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+          <button class="btn ghost" type="button" id="photo-remove" hidden>Remove</button>
+          <div class="hint">A square photo works best. It's resized before upload.</div>
+        </div>
+      </div>
+      <div class="field"><label for="full_name">Full name</label><input id="full_name" type="text" autocomplete="name" maxlength="80" required></div>
+      <div class="grid2">
+        <div class="field"><label for="title">Job title</label><input id="title" type="text" maxlength="80" autocomplete="organization-title"></div>
+        <div class="field"><label for="company">Company</label><input id="company" type="text" maxlength="80" autocomplete="organization"></div>
+      </div>
+      <div class="field"><label for="location">Location</label><input id="location" type="text" maxlength="80" placeholder="Kuala Lumpur, Malaysia"></div>
+      <div class="field"><label for="bio">Short bio</label><textarea id="bio" maxlength="240" placeholder="One or two lines about what you do"></textarea></div>
+      <div class="field"><label for="tags">Tags</label><input id="tags" type="text" maxlength="120" placeholder="Product, HR tech, Speaker"><div class="hint">Separate with commas. Up to 5.</div></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Contact</legend>
+      <div class="grid2">
+        <div class="field"><label for="phone">Phone</label><input id="phone" type="tel" autocomplete="tel" maxlength="30" placeholder="+60 12-345 6789"></div>
+        <div class="field"><label for="whatsapp">WhatsApp</label><input id="whatsapp" type="tel" maxlength="30" placeholder="Leave empty to use your phone"></div>
+      </div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" maxlength="120"></div>
+      <div class="hint">Include your country code (like +60) so Call and WhatsApp work from any country.</div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Links</legend>
+      <div id="links"></div>
+      <button class="btn" type="button" id="add-link">+ Add a link</button>
+    </fieldset>
+
+    <fieldset>
+      <legend>Style</legend>
+      <div class="swatches" id="swatches" role="radiogroup" aria-label="Accent colour"></div>
+    </fieldset>
+
+    <fieldset>
+      <label class="check"><input type="checkbox" id="published" checked> Show my card publicly</label>
+      <div class="hint">Turn this off to hide your card without deleting it.</div>
+    </fieldset>
+
+    <div class="savebar">
+      <button class="btn primary" type="submit" id="save-btn">Save card</button>
+      <span class="status" id="status" role="status" aria-live="polite"></span>
+      <button class="btn ghost" type="button" id="delete-btn" hidden>Delete card</button>
+    </div>
+  </form>
+
+  <aside class="preview" aria-label="Live preview">
+    <div class="label">Live preview</div>
+    <div class="card-wrap" id="preview"></div>
+  </aside>
+</div>
+
+<script src="/vendor/supabase.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/edit.js"></script>
+</body>
+</html>

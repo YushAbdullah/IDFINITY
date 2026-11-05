@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IDFINITY · Free digital business card</title>
+<meta name="description" content="Make a free digital business card with a QR code and a one-tap Save to contacts button.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F6FEF6">
+<link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="/" aria-label="IDFINITY home"><img src="/img/logo.svg" alt="IDFINITY" width="136" height="36"></a>
+  <div class="links-r"><a class="btn ghost" href="/card/demo">See an example</a></div>
+</header>
+
+<section class="hero">
+  <div>
+    <div class="chips" aria-hidden="true"><span class="chip"><b>100%</b> free</span><span class="chip"><b>1 tap</b> to save your contact</span></div>
+    <h1>Your business card, <span class="hl">always with you<svg viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true"><path d="M3 14c40-9 90-12 146-8s100 5 148-3" fill="none" stroke="#6BE683" stroke-width="5" stroke-linecap="round"/></svg></span>.</h1>
+    <p class="lead">Make a digital card in a few minutes. Share one link or QR code, and people save your details to their phone with a single tap.</p>
+    <ul class="feats">
+      <li><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Your own link, like <b>/card/your-name</b></span></li>
+      <li><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>QR code to print or show on your phone</span></li>
+      <li><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>"Save to contacts" file that works on iPhone and Android</span></li>
+      <li><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Phone wallpaper image with your QR code</span></li>
+      <li><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></svg><span>Free, with no app to install</span></li>
+    </ul>
+  </div>
+
+  <div class="panel" id="auth">
+    <h2>Create your card</h2>
+    <p class="sub">Enter your email and we'll send you a sign-in link. No password needed.</p>
+    <div id="setup" class="msg err" style="margin:0 0 14px" hidden>This site isn't connected to its database yet. Add your Supabase details to <code>js/config.js</code> (see the README).</div>
+    <form id="email-form" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" autocomplete="email" required placeholder="you@example.com">
+      </div>
+      <button class="btn primary w100" type="submit" id="email-btn">Send me a sign-in link</button>
+    </form>
+    <div id="google-wrap" hidden>
+      <div class="divider">or</div>
+      <button class="btn w100" type="button" id="google-btn">Continue with Google</button>
+    </div>
+    <div id="auth-msg" class="msg" role="status" hidden></div>
+  </div>
+</section>
+
+<script src="/vendor/supabase.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+(async function () {
+  var E = window.ECard, sb = E.sb;
+  var msg = document.getElementById("auth-msg");
+  function say(t, err) { msg.hidden = false; msg.textContent = t; msg.classList.toggle("err", !!err); }
+  if (E.cfg.appName) document.title = E.cfg.appName + " · Free digital business card";
+  if (!sb) { document.getElementById("setup").hidden = false; document.getElementById("email-btn").disabled = true; return; }
+
+  var s = await sb.auth.getSession();
+  if (s.data.session) { location.replace("/edit.html"); return; }
+  sb.auth.onAuthStateChange(function (ev, session) { if (session) location.replace("/edit.html"); });
+
+  document.getElementById("email-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var email = document.getElementById("email").value.trim(), btn = document.getElementById("email-btn");
+    if (!/^\S+@\S+\.\S+$/.test(email)) { say("Please enter a valid email address.", true); return; }
+    btn.disabled = true; btn.textContent = "Sending…";
+    var r = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: location.origin + "/edit.html" } });
+    btn.disabled = false; btn.textContent = "Send me a sign-in link";
+    if (r.error) say(r.error.message, true);
+    else say("Check your inbox for a link from us. Open it on this device to start building your card.");
+  });
+
+  if (E.cfg.googleSignIn) {
+    document.getElementById("google-wrap").hidden = false;
+    document.getElementById("google-btn").addEventListener("click", function () {
+      sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: location.origin + "/edit.html" } });
+    });
+  }
+})();
+</script>
+</body>
+</html>

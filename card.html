@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IDFINITY</title>
+<meta name="description" content="Digital business card. Save the contact in one tap.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#F6FEF6">
+<link rel="icon" href="/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="card-wrap" id="root"><p class="foot">Loading card…</p></div>
+
+<script src="/vendor/supabase.js"></script>
+<script src="/vendor/qrcode.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/common.js"></script>
+<script>
+(async function () {
+  var E = window.ECard, root = document.getElementById("root");
+  var m = location.pathname.match(/\/card\/([^\/?#]+)/), q = new URLSearchParams(location.search);
+  var slug = decodeURIComponent((m && m[1]) || q.get("u") || "").toLowerCase().replace(/\.html$/, "");
+
+  var DEMO = {
+    slug: "demo", full_name: "Aisyah Rahman", title: "Marketing Lead", company: "Kopi & Co.", location: "Kuala Lumpur, Malaysia",
+    bio: "I help small cafés grow with simple, honest marketing.", tags: ["Branding", "Social media", "F&B"],
+    phone: "+60 12-345 6789", whatsapp: "", email: "aisyah@example.com", accent: "#6BE683", avatar_url: null,
+    links: [{ type: "linkedin", url: "https://www.linkedin.com/in/example" }, { type: "instagram", url: "https://instagram.com/example" }, { type: "website", url: "https://example.com" }]
+  };
+
+  function notFound(t) {
+    document.title = "Card not found";
+    root.innerHTML = '<div class="empty"><h1>Card not found</h1><p>' + E.esc(t) + '</p><p><a class="btn primary" href="/">Make your own free card on IDFINITY</a></p></div>';
+  }
+
+  var card = null;
+  if (slug === "demo") card = DEMO;
+  else if (!slug) return notFound("This link is missing a name.");
+  else if (!E.sb) return notFound("This site isn't connected to its database yet.");
+  else {
+    var r = await E.sb.from("cards").select("*").eq("slug", slug).eq("published", true).maybeSingle();
+    if (r.error) return notFound("Something went wrong loading this card. Please try again.");
+    if (!r.data) return notFound("Nobody has a card at this link yet.");
+    card = r.data;
+  }
+
+  var who = card.full_name + (card.title ? " · " + card.title : "");
+  document.title = card.full_name + " · IDFINITY";
+  var d = document.querySelector('meta[name="description"]');
+  d.setAttribute("content", who + (card.company ? ", " + card.company : "") + ". Save my contact in one tap.");
+  root.innerHTML = E.renderCard(card);
+  E.bindCard(root, function () { return card; });
+})();
+</script>
+</body>
+</html>
