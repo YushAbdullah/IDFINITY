@@ -105,6 +105,8 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent-g
 .divider{display:flex;align-items:center;gap:10px;color:var(--text-subtle);font-size:.8125rem;margin:16px 0}
 .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
 .w100{width:100%}
+.linkbtn{background:none;border:0;padding:0;font:600 1em/1.4 var(--font);color:var(--success);text-decoration:underline;cursor:pointer}
+.center{text-align:center}
 .msg{padding:12px 14px;border-radius:12px;background:var(--surface-tint);font-size:.9375rem;margin-top:12px;color:var(--text)}
 .msg.err{background:#fff;color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 35%,#fff)}
 
